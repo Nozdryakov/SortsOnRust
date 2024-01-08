@@ -2,7 +2,19 @@ use std::time::{Instant};
 use std::io;
 use rand::Rng;
 
-fn quicksort<T: Ord + std::fmt::Debug>(arr: &mut [T]) {
+fn insertion_sort<T: Ord>(arr: &mut [T]) {
+    let n = arr.len();
+
+    for i in 1..n {
+        let mut j = i;
+        while j > 0 && arr[j] < arr[j - 1] {
+            arr.swap(j, j - 1);
+            j -= 1;
+        }
+    }
+}
+
+fn quicksort<T: Ord>(arr: &mut [T]) {
     if arr.len() <= 1 {
         return;
     }
@@ -117,6 +129,29 @@ fn main() {
                     quicksort(&mut numbers);
                     let elapsed_time = start_time.elapsed();
                     // println!("{:?}", &mut numbers);
+
+                    let time_in_minutes = elapsed_time.as_millis() as f64 / 60000.0;
+                    println!("Время сортировки: {} минут", time_in_minutes);
+                }
+                Err(_) => {
+                    println!("Ошибка ввода числа");
+                    return;
+                }
+            }
+        }
+        Ok(4) => {
+            println!("Введите длину вектора:");
+            let mut length_input = String::new();
+            io::stdin().read_line(&mut length_input).expect("Ошибка ввода");
+
+            let length: Result<usize, _> = length_input.trim().parse();
+            match length {
+                Ok(length) => {
+                    let mut numbers = generate_random_vector(length);
+                    // let mut static_num = vec![5, 3, 2, 1, 4];
+                    let start_time = Instant::now();
+                    insertion_sort(&mut numbers);
+                    let elapsed_time = start_time.elapsed();
 
                     let time_in_minutes = elapsed_time.as_millis() as f64 / 60000.0;
                     println!("Время сортировки: {} минут", time_in_minutes);
