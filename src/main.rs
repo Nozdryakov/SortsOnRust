@@ -3,6 +3,37 @@ use std::io;
 use chrono::Duration;
 use rand::Rng;
 
+fn sort<T: Ord, F>(sort_function: F, length: usize) 
+    where F: FnOnce(&mut [i32])
+{
+    let mut numbers = generate_random_vector(length);
+
+    let start_time = Instant::now();
+    sort_function(&mut numbers[..]); 
+    let elapsed_time = start_time.elapsed();
+
+    let duration = Duration::from_std(elapsed_time).unwrap();
+    let minutes = duration.num_minutes();
+    let seconds = duration.num_seconds() % 60;
+
+    println!("Время сортировки: {} мин {} сек", minutes, seconds);
+}
+fn get_vector_length() -> usize {
+    let mut length_input = String::new();
+    io::stdin().read_line(&mut length_input).expect("Ошибка ввода");
+
+    length_input.trim().parse().unwrap_or_else(|_| {
+        println!("Ошибка ввода числа");
+        std::process::exit(1);
+    })
+}
+
+fn get_user_input() -> Result<u32, std::num::ParseIntError> {
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).expect("Ошибка ввода");
+    input.trim().parse()
+}
+
 fn selection_sort<T: Ord>(arr: &mut [T]) {
     let n = arr.len();
 
@@ -20,7 +51,6 @@ fn selection_sort<T: Ord>(arr: &mut [T]) {
         }
     }
 }
-
 
 fn insertion_sort<T: Ord>(arr: &mut [T]) {
     let n = arr.len();
@@ -49,13 +79,11 @@ fn partition<T: Ord>(arr: &mut [T]) -> usize {
     let pivot_index = arr.len() / 2;
     arr.swap(pivot_index, arr.len() - 1);
 
-
     let mut i = 0;
     for j in 0..arr.len() - 1 {
         if arr[j] <= arr[arr.len() - 1] {
             arr.swap(i, j);
             i += 1;
-            
         }
     }
 
@@ -78,145 +106,62 @@ fn bubble_sort<T: Ord>(arr: &mut [T]) {
 fn generate_random_vector(length: usize) -> Vec<i32> {
     let mut rng = rand::thread_rng();
     (0..length)
-    .map(|_| rng.gen_range(-(length as i32)..=length as i32))
-    .collect()
+        .map(|_| rng.gen_range(-(length as i32)..=length as i32))
+        .collect()
 }
 
-fn print_text<T: Ord>(arr: &mut [T]) {
+fn print_text<T: Ord + std::fmt::Debug>(arr: &[T]) {
     let n = arr.len();
     println!("Количество элементов: {}", n);
+
+    print!("Элементы массива: ");
+    let elements_str = arr.iter().map(|el| format!("{:?}", el)).collect::<Vec<_>>().join("; ");
+    println!("[{}]", elements_str);
+    println!("\n");
 }
 
 fn main() {
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).expect("Ошибка ввода");
+    loop {
+        println!("Выберите тип сортировки (1-5):\n
+        1. Выбором сортировка\n
+        2. Быстрая сортировка\n
+        3. Вставками сортировка\n
+        4. Пузырьквая сортировка\n
+        
+        5. Сгенерировать и вывести элементы массива");
+        let choice: Result<u32, _> = get_user_input();
 
-    let choice: Result<u32, _> = input.trim().parse();
-    match choice {
-        Ok(1) => {
-            println!("Введите длину вектора:");
-            let mut length_input = String::new();
-            io::stdin().read_line(&mut length_input).expect("Ошибка ввода");
-
-            let length: Result<usize, _> = length_input.trim().parse();
-            match length {
-                Ok(length) => {
-                    let mut numbers = generate_random_vector(length);
-                    let start_time = Instant::now();
-                    // println!("Элементы: {:?}", numbers);
-                    bubble_sort(&mut numbers);
-                    let elapsed_time = start_time.elapsed();
-                    let duration = Duration::from_std(elapsed_time).unwrap();
-
-                    let minutes = duration.num_minutes();
-                    let seconds = duration.num_seconds() % 60;
-
-                    println!("Время сортировки: {} мин {} сек", minutes, seconds);
-                }
-                Err(_) => {
-                    println!("Ошибка ввода числа");
-                    return;
-                }
+        match choice {
+            Ok(1) => {
+                println!("Введите длину вектора:");
+                let length = get_vector_length();
+                sort::<i32, _>(selection_sort, length);
             }
-        }
-        Ok(2) => {
-            println!("Введите длину вектора:");
-            let mut length_input = String::new();
-            io::stdin().read_line(&mut length_input).expect("Ошибка ввода");
-
-            let length: Result<usize, _> = length_input.trim().parse();
-            match length {
-                Ok(length) => {
-                    let mut numbers = generate_random_vector(length);
-                    print_text(&mut numbers);
-                    // println!("Элементы: {:?}", &mut numbers);
-                }
-                Err(_) => {
-                    println!("Ошибка ввода числа");
-                    return;
-                }
+            Ok(2) => {
+                println!("Введите длину вектора:");
+                let length = get_vector_length();
+                sort::<i32, _>(quicksort, length);
             }
-        }
-        Ok(3) => {
-            println!("Введите длину вектора:");
-            let mut length_input = String::new();
-            io::stdin().read_line(&mut length_input).expect("Ошибка ввода");
-
-            let length: Result<usize, _> = length_input.trim().parse();
-            match length {
-                Ok(length) => {
-                    let mut numbers = generate_random_vector(length);
-                    let start_time = Instant::now();
-                    quicksort(&mut numbers);
-                    let elapsed_time = start_time.elapsed();
-                    let duration = Duration::from_std(elapsed_time).unwrap();
-
-                    let minutes = duration.num_minutes();
-                    let seconds = duration.num_seconds() % 60;
-
-                    println!("Время сортировки: {} мин {} сек", minutes, seconds);
-                }
-                Err(_) => {
-                    println!("Ошибка ввода числа");
-                    return;
-                }
+            Ok(3) => {
+                println!("Введите длину вектора:");
+                let length = get_vector_length();
+                sort::<i32, _>(insertion_sort, length);
             }
-        }
-        Ok(4) => {
-            println!("Введите длину вектора:");
-            let mut length_input = String::new();
-            io::stdin().read_line(&mut length_input).expect("Ошибка ввода");
-
-            let length: Result<usize, _> = length_input.trim().parse();
-            match length {
-                Ok(length) => {
-                    let mut numbers = generate_random_vector(length);
-                    // let mut static_num = vec![5, 3, 2, 1, 4];
-                    let start_time = Instant::now();
-                    insertion_sort(&mut numbers);
-                    let elapsed_time = start_time.elapsed();
-                    let duration = Duration::from_std(elapsed_time).unwrap();
-
-                    let minutes = duration.num_minutes();
-                    let seconds = duration.num_seconds() % 60;
-
-                    println!("Время сортировки: {} мин {} сек", minutes, seconds);
-                }
-                Err(_) => {
-                    println!("Ошибка ввода числа");
-                    return;
-                }
+            Ok(4) => {
+                println!("Введите длину вектора:");
+                let length = get_vector_length();
+                sort::<i32, _>(bubble_sort, length);
             }
-        }
-        Ok(5) => {
-            println!("Введите длину вектора:");
-            let mut length_input = String::new();
-            io::stdin().read_line(&mut length_input).expect("Ошибка ввода");
-
-            let length: Result<usize, _> = length_input.trim().parse();
-            match length {
-                Ok(length) => {
-                    let mut numbers = generate_random_vector(length);
-                    //  let mut static_num = vec![5, 3, 2, 1, 4];
-                    let start_time = Instant::now();
-                    selection_sort(&mut numbers);
-                    let elapsed_time = start_time.elapsed();
-                    let duration = Duration::from_std(elapsed_time).unwrap();
-
-                    let minutes = duration.num_minutes();
-                    let seconds = duration.num_seconds() % 60;
-
-                    println!("Время сортировки: {} мин {} сек", minutes, seconds);
-                }
-                Err(_) => {
-                    println!("Ошибка ввода числа");
-                    return;
-                }
+            Ok(5) => {
+                println!("Введите длину вектора:");
+                let length = get_vector_length();
+                let mut numbers = generate_random_vector(length);
+                print_text(&mut numbers);
             }
-        }
-        _ => {
-            println!("Некорректный выбор, выберите 1 или 2");
-            return;
+            _ => {
+                println!("Некорректный выбор, выберите число от 1 до 5");
+                return;
+            }
         }
     }
 }
